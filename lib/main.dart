@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:meals_app/screens/tabs_screen.dart';
 
+import './dummy_data.dart';
+import './models/meal.dart';
+import './screens/filters_screen.dart';
+import './screens/tabs_screen.dart';
 import '../screens/categories_screen.dart';
 import '../screens/category_meals_screen.dart';
 import '../screens/meal_detail_screen.dart';
@@ -9,8 +12,21 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  Map<String, bool> _filters = {
+    'gluten': false,
+    'lactose': false,
+    'vegetarian': false,
+    'vegan': false,
+  };
+  List<Meal> _availableMeals = DUMMY_MEALS;
 
   @override
   Widget build(BuildContext context) {
@@ -40,11 +56,44 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         '/': (ctx) => const TabsScreen(),
-        CategoryMealsScreen.routeName: (context) => const CategoryMealsScreen(),
+        CategoryMealsScreen.routeName: (context) =>
+            CategoryMealsScreen(availableMeals: _availableMeals),
         MealDetailScreen.routeName: (context) => const MealDetailScreen(),
+        FiltersScreen.routeName: (context) =>
+            FiltersScreen(currentFilters: _filters, saveFilters: _setFilters),
       },
       onUnknownRoute: (settings) =>
           MaterialPageRoute(builder: (ctx) => const CategoriesScreen()),
     );
+  }
+
+  void _setFilters(Map<String, bool> filtersData) {
+    setState(() {
+      _filters = filtersData;
+      _availableMeals = DUMMY_MEALS.where((meal) {
+        if (_filters.containsKey('gluten') &&
+            _filters['gluten']! &&
+            !meal.isGlutenFree) {
+          return false;
+        }
+        if (_filters.containsKey('lactose') &&
+            _filters['lactose']! &&
+            !meal.isLactoseFree) {
+          return false;
+        }
+        if (_filters.containsKey('vegetarian') &&
+            _filters['vegetarian']! &&
+            !meal.isVegetarian) {
+          return false;
+        }
+        if (_filters.containsKey('vegan') &&
+            _filters['vegan']! &&
+            !meal.isVegan) {
+          return false;
+        }
+
+        return true;
+      }).toList();
+    });
   }
 }

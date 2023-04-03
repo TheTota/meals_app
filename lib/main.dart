@@ -27,6 +27,7 @@ class _MyAppState extends State<MyApp> {
     'vegan': false,
   };
   List<Meal> _availableMeals = DUMMY_MEALS;
+  final List<Meal> _favoriteMeals = [];
 
   @override
   Widget build(BuildContext context) {
@@ -55,12 +56,28 @@ class _MyAppState extends State<MyApp> {
             ),
       ),
       routes: {
-        '/': (ctx) => const TabsScreen(),
-        CategoryMealsScreen.routeName: (context) =>
-            CategoryMealsScreen(availableMeals: _availableMeals),
-        MealDetailScreen.routeName: (context) => const MealDetailScreen(),
-        FiltersScreen.routeName: (context) =>
-            FiltersScreen(currentFilters: _filters, saveFilters: _setFilters),
+        '/': (ctx) {
+          return TabsScreen(
+            favoriteMeals: _favoriteMeals,
+          );
+        },
+        CategoryMealsScreen.routeName: (context) {
+          return CategoryMealsScreen(
+            availableMeals: _availableMeals,
+          );
+        },
+        MealDetailScreen.routeName: (context) {
+          return MealDetailScreen(
+            toggleFavorite: _toggleFavorite,
+            isMealFavorite: _isMealFavorite,
+          );
+        },
+        FiltersScreen.routeName: (context) {
+          return FiltersScreen(
+            currentFilters: _filters,
+            saveFilters: _setFilters,
+          );
+        },
       },
       onUnknownRoute: (settings) =>
           MaterialPageRoute(builder: (ctx) => const CategoriesScreen()),
@@ -95,5 +112,23 @@ class _MyAppState extends State<MyApp> {
         return true;
       }).toList();
     });
+  }
+
+  void _toggleFavorite(String mealId) {
+    final existingIndex =
+        _favoriteMeals.indexWhere((meal) => mealId == meal.id);
+    if (existingIndex >= 0) {
+      setState(() {
+        _favoriteMeals.removeAt(existingIndex);
+      });
+    } else {
+      setState(() {
+        _favoriteMeals.add(DUMMY_MEALS.firstWhere((meal) => mealId == meal.id));
+      });
+    }
+  }
+
+  bool _isMealFavorite(String mealId) {
+    return _favoriteMeals.any((meal) => mealId == meal.id);
   }
 }
